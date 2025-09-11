@@ -1,4 +1,5 @@
 flask
-torch
 ultralytics
+torch
+gdown
 opencv-python
