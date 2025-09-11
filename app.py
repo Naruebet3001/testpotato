@@ -1,13 +1,15 @@
 from flask import Flask, request, jsonify
 from ultralytics import YOLO
 import os
-import gdown  # ใช้โหลดไฟล์จาก Google Drive
+import gdown
+import tempfile
+import uuid
 
 app = Flask(__name__)
 
 # ✅ โหลดโมเดล YOLO จาก Google Drive ถ้ายังไม่มีใน /tmp
-MODEL_PATH = "/tmp/model.pt"
-DRIVE_URL = "https://drive.google.com/uc?id=110kAb82an0NQ_OYLea8n1kYwOQ9BoqK5"  # เอา id ตรงกลางลิงก์มา
+MODEL_PATH = "/tmp/yolov11.pt"
+DRIVE_URL = "https://drive.google.com/uc?id=110kAb82an0NQ_OYLea8n1kYwOQ9BoqK5"
 
 if not os.path.exists(MODEL_PATH):
     gdown.download(DRIVE_URL, MODEL_PATH, quiet=False)
@@ -32,8 +34,10 @@ def predict():
     if file.filename == "":
         return jsonify({"error": "ชื่อไฟล์ไม่ถูกต้อง"}), 400
 
-    # บันทึกไฟล์ชั่วคราว
-    tmp_path = os.path.join("/tmp", file.filename)
+    # ✅ ใช้ tempfile + uuid เพื่อป้องกัน path แปลก ๆ จาก client
+    tmp_dir = tempfile.gettempdir()
+    tmp_filename = f"{uuid.uuid4().hex}.jpg"
+    tmp_path = os.path.join(tmp_dir, tmp_filename)
     file.save(tmp_path)
 
     try:
@@ -44,20 +48,25 @@ def predict():
             cls = int(best.cls[0])
             conf = float(best.conf[0])
             info = diseases.get(cls, {"id": 0, "name": "ไม่พบข้อมูล", "treatment": "ไม่พบข้อมูล"})
+            confidence_str = f"{conf:.2%}"
         else:
             info = diseases[9]  # Healthy
+            confidence_str = "100%"
 
-        os.remove(tmp_path)
         return jsonify({
             "disease_id": info["id"],
             "disease_name": info["name"],
-            "confidence": f"{conf:.2%}" if results.boxes else "100%",
+            "confidence": confidence_str,
             "treatment": info["treatment"]
         })
 
     except Exception as e:
-        os.remove(tmp_path)
         return jsonify({"error": str(e)}), 500
+    finally:
+        # ✅ ลบไฟล์ temp ทิ้ง
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
