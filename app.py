@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 
 # โหลดโมเดล YOLO
-model = YOLO("yolov11.pt")  # ตรวจสอบว่าโมเดลอยู่ในโฟลเดอร์เดียวกับ app.py
+model = YOLO("https://drive.google.com/file/d/110kAb82an0NQ_OYLea8n1kYwOQ9BoqK5/view?usp=sharing")  # ตรวจสอบว่าโมเดลอยู่ในโฟลเดอร์เดียวกับ app.py
 
 # Mapping class → disease
 diseases = {
@@ -54,3 +54,4 @@ def predict():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
