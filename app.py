@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # ✅ โหลดโมเดล YOLO จาก Google Drive ถ้ายังไม่มีใน /tmp
 MODEL_PATH = "/tmp/yolov11.pt"
-DRIVE_URL = "https://drive.google.com/file/d/1eoE4rg1uKktf1nbTSOddAGGD5TfCtTPW"
+DRIVE_URL = "https://drive.google.com/uc?id=1BoLD1112mW0h0g3SXHjpGvKuskG_0STp"
 
 if not os.path.exists(MODEL_PATH):
     gdown.download(DRIVE_URL, MODEL_PATH, quiet=False)
@@ -70,4 +70,5 @@ def predict():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
