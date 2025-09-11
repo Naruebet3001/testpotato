@@ -1,12 +1,19 @@
-# app.py
 from flask import Flask, request, jsonify
 from ultralytics import YOLO
 import os
+import gdown  # ใช้โหลดไฟล์จาก Google Drive
 
 app = Flask(__name__)
 
+# ✅ โหลดโมเดล YOLO จาก Google Drive ถ้ายังไม่มีใน /tmp
+MODEL_PATH = "/tmp/model.pt"
+DRIVE_URL = "https://drive.google.com/uc?id=110kAb82an0NQ_OYLea8n1kYwOQ9BoqK5"  # เอา id ตรงกลางลิงก์มา
+
+if not os.path.exists(MODEL_PATH):
+    gdown.download(DRIVE_URL, MODEL_PATH, quiet=False)
+
 # โหลดโมเดล YOLO
-model = YOLO("https://drive.google.com/file/d/110kAb82an0NQ_OYLea8n1kYwOQ9BoqK5/view?usp=sharing")  # ตรวจสอบว่าโมเดลอยู่ในโฟลเดอร์เดียวกับ app.py
+model = YOLO(MODEL_PATH)
 
 # Mapping class → disease
 diseases = {
@@ -54,4 +61,3 @@ def predict():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-
