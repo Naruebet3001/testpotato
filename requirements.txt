@@ -3,3 +3,4 @@ ultralytics
 torch
 gdown
 opencv-python
+numpy
