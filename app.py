@@ -6,7 +6,6 @@ import tempfile
 import uuid
 import cv2
 import numpy as np
-import base64
 
 app = Flask(__name__)
 
@@ -30,26 +29,29 @@ diseases = {
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    # ✅ รับข้อมูลเป็น JSON
-    data = request.json
-    if not data or "image" not in data:
-        return jsonify({"error": "ไม่พบข้อมูลรูปภาพใน JSON payload"}), 400
+    # Initialize tmp_path to None outside the try block
+    tmp_path = None
+
+    if "file" not in request.files:
+        return jsonify({"error": "ไม่พบไฟล์ภาพ"}), 400
+
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "ชื่อไฟล์ไม่ถูกต้อง"}), 400
 
     try:
-        # ✅ แปลง base64 string กลับมาเป็นไฟล์ภาพ
-        base64_image = data["image"]
-        image_bytes = base64.b64decode(base64_image)
-        
-        # ✅ ใช้ numpy และ cv2 ในการอ่านข้อมูล binary
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        
+        tmp_dir = tempfile.gettempdir()
+        tmp_filename = f"{uuid.uuid4().hex}.jpg"
+        tmp_path = os.path.join(tmp_dir, tmp_filename)
+        file.save(tmp_path)
+
+        # ✅ Read the image with OpenCV and convert it to a matrix
+        img = cv2.imread(tmp_path)
         if img is None:
-            return jsonify({"error": "ไม่สามารถอ่านไฟล์ภาพจาก base64 ได้"}), 400
-        
+            return jsonify({"error": "ไม่สามารถอ่านไฟล์ภาพได้"}), 400
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-        # ทำการทำนาย (ส่วนนี้เหมือนเดิม)
+        # Perform prediction
         results = model(img)[0]
 
         if results.boxes and len(results.boxes) > 0:
@@ -72,11 +74,12 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # ลบไฟล์ temp ทิ้ง
-        if os.path.exists(tmp_path):
+        # Check if tmp_path exists before trying to remove it
+        if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
