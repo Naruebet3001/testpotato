@@ -4,10 +4,12 @@ import os
 import gdown
 import tempfile
 import uuid
+import cv2  # ใช้ OpenCV
+import numpy as np
 
 app = Flask(__name__)
 
-# ✅ โหลดโมเดล YOLO จาก Google Drive ถ้ายังไม่มีใน /tmp
+# โหลดโมเดล YOLO จาก Google Drive ถ้ายังไม่มีใน /tmp
 MODEL_PATH = "/tmp/yolov11.pt"
 DRIVE_URL = "https://drive.google.com/uc?id=1BoLD1112mW0h0g3SXHjpGvKuskG_0STp"
 
@@ -34,14 +36,21 @@ def predict():
     if file.filename == "":
         return jsonify({"error": "ชื่อไฟล์ไม่ถูกต้อง"}), 400
 
-    # ✅ ใช้ tempfile + uuid เพื่อป้องกัน path แปลก ๆ จาก client
+    # ใช้ tempfile + uuid เพื่อป้องกัน path แปลก ๆ จาก client
     tmp_dir = tempfile.gettempdir()
     tmp_filename = f"{uuid.uuid4().hex}.jpg"
     tmp_path = os.path.join(tmp_dir, tmp_filename)
     file.save(tmp_path)
 
     try:
-        results = model(tmp_path)[0]
+        # ✅ อ่านภาพด้วย OpenCV และแปลงเป็นเมทริกซ์
+        img = cv2.imread(tmp_path)
+        if img is None:
+            return jsonify({"error": "ไม่สามารถอ่านไฟล์ภาพได้"}), 400
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # YOLO ใช้ RGB
+
+        # ทำการทำนาย
+        results = model(img)[0]
 
         if results.boxes and len(results.boxes) > 0:
             best = max(results.boxes, key=lambda b: float(b.conf[0]))
@@ -63,12 +72,10 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        # ✅ ลบไฟล์ temp ทิ้ง
+        # ลบไฟล์ temp ทิ้ง
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-
-
