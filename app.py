@@ -20,12 +20,20 @@ if not os.path.exists(MODEL_PATH):
 model = YOLO(MODEL_PATH)
 
 # Mapping class → disease
+# ...
 diseases = {
-    0: {"id": 1, "name": "Early Blight", "treatment": "ถอนต้นที่เป็นโรค..."},
-    1: {"id": 2, "name": "Late Blight", "treatment": "ลดการให้น้ำแบบพ่นฝอย..."},
-    2: {"id": 3, "name": "Septoria Leaf Spot", "treatment": "กำจัดเศษพืชรอบแปลง..."},
+    0: {"id": 1, "name": "Bacterial Spot", "treatment": "ใช้สารชีวภัณฑ์..."},
+    1: {"id": 2, "name": "Early Blight", "treatment": "ถอนต้นที่เป็นโรค..."},
+    2: {"id": 3, "name": "Late Blight", "treatment": "ลดการให้น้ำแบบพ่นฝอย..."},
+    3: {"id": 4, "name": "Leaf Mold", "treatment": "ปรับปรุงการถ่ายเทอากาศ..."},
+    4: {"id": 5, "name": "Septoria Leaf Spot", "treatment": "กำจัดเศษพืชรอบแปลง..."},
+    5: {"id": 6, "name": "Spider Mites", "treatment": "พ่นน้ำไล่..."},
+    6: {"id": 7, "name": "Target Spot", "treatment": "กำจัดวัชพืช..."},
+    7: {"id": 8, "name": "Tomato Yellow Leaf Curl Virus", "treatment": "กำจัดแมลงหวี่ขาว..."},
+    8: {"id": 9, "name": "Tomato Mosaic Virus", "treatment": "ทำลายต้นที่เป็นโรค..."},
     9: {"id": 10, "name": "Healthy", "treatment": "ไม่ต้องทำการรักษา"}
 }
+# ...
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -81,5 +89,6 @@ def predict():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
 
 
