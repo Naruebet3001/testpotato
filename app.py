@@ -19,8 +19,6 @@ if not os.path.exists(MODEL_PATH):
 # โหลดโมเดล YOLO
 model = YOLO(MODEL_PATH)
 
-# Mapping class → disease
-# ...
 diseases = {
     0: {"id": 1, "name": "Bacterial Spot", "treatment": "ใช้สารชีวภัณฑ์..."},
     1: {"id": 2, "name": "Early Blight", "treatment": "ถอนต้นที่เป็นโรค..."},
@@ -33,7 +31,6 @@ diseases = {
     8: {"id": 9, "name": "Tomato Mosaic Virus", "treatment": "ทำลายต้นที่เป็นโรค..."},
     9: {"id": 10, "name": "Healthy", "treatment": "ไม่ต้องทำการรักษา"}
 }
-# ...
 
 @app.route("/predict", methods=["POST"])
 def predict():
